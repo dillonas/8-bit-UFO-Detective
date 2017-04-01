@@ -20,7 +20,12 @@ comment * -----------------------------------------------------
 
     .data
 		
-		pos POINT <0, 0>;
+        cci CONSOLE_CURSOR_INFO <>
+        chand dd ?
+				
+        old_pos POINT <1, 1>;
+        pos POINT <1, 1>;
+				
         map db '#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'
 	      db '#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'
             db '#',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
@@ -76,7 +81,6 @@ start:
    
 ; �������������������������������������������������������������������������
     call main
-    ;inkey
     exit
 
 ; �������������������������������������������������������������������������
@@ -84,11 +88,22 @@ start:
 main proc
 
 		;LOCAL pos :POINT
-
+		
+		invoke GetStdHandle, STD_OUTPUT_HANDLE
+		mov chand, eax
+		invoke GetConsoleCursorInfo, chand, addr cci
+		mov cci.bVisible, FALSE
+		invoke SetConsoleCursorInfo, chand, addr cci
+		; hide the cursor
+		
     call drawbg
     call drawmap
-		call get_input
-
+		
+		.while 1
+		  call drawplayer
+		  call get_input
+		.endw
+		
     ;mov ecx,1
     ;mov edx,2
     ;call getmapitem
@@ -98,18 +113,52 @@ main endp
 
 get_input proc
 		getkey
-		.if al == 75
+		
+		mov edx, pos.x
+		mov old_pos.x, edx
+		mov edx, pos.y
+		mov old_pos.y, edx
+		
+		.if al == 75 && pos.x > 0
 			; left
-			dec pos.x
-		.elseif al == 72
+			mov ecx, pos.x
+			mov edx, pos.y
+			;
+			dec ecx
+			call getmapitem
+			.if al == ' '
+				dec pos.x
+			.endif
+		.elseif al == 72 && pos.y > 0
 			; up
-			inc pos.y
-		.elseif al == 77
+			mov ecx, pos.x
+			mov edx, pos.y
+			;
+			dec edx
+			call getmapitem
+			.if al == ' '
+				dec pos.y
+			.endif
+		.elseif al == 77 && pos.x <= 62
 			; right
-			inc pos.x
-		.elseif al == 80
+			mov ecx, pos.x
+			mov edx, pos.y
+			;
+			inc ecx
+			call getmapitem
+			.if al == ' '
+				inc pos.x
+			.endif
+		.elseif al == 80 && pos.y <= 22
 			; down
-			dec pos.y
+			mov ecx, pos.x
+			mov edx, pos.y
+			;
+			inc edx
+			call getmapitem
+			.if al == ' '
+				inc pos.y
+			.endif
 		.endif
 		ret
 get_input endp
@@ -159,6 +208,30 @@ drawbg proc
     print "  ------------------------------------------------------------------  ------------------------------------------------  "
     ret
 drawbg endp
+
+drawplayer proc
+
+		mov edx, 4
+		mov ecx, 3
+
+		add edx, old_pos.y
+		add ecx, old_pos.x
+		
+		loc ecx, edx
+    print " "
+		
+    mov edx, 4
+    mov ecx, 3
+		
+		add edx, pos.y
+		add ecx, pos.x
+		
+		loc ecx, edx
+    print "x"
+		
+		ret
+
+drawplayer endp
 
 drawmap proc
     mov esi, offset map
