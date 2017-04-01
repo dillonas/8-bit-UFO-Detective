@@ -455,7 +455,6 @@ get_input proc
 			.elseif al == 'q'
                         mov eax,2
                         call interact
-                  .else
 			.elseif al == '$'
 				invoke nrandom, 8
 				add inv.money, eax
