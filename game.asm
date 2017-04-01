@@ -19,6 +19,7 @@ comment * -----------------------------------------------------
 		POINT ENDS
             INVENTORY STRUCT
 			knife db 0
+                  money dd 0
 		INVENTORY ENDS
 
     .data
@@ -28,7 +29,7 @@ comment * -----------------------------------------------------
 				
         old_pos POINT <1, 1>;
         pos POINT <1, 1>;
-        inv INVENTORY<0>;
+        inv INVENTORY<0,0>;
         last_direction POINT <1, 1>;
 				
         maps db '#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'
@@ -220,16 +221,24 @@ comment * -----------------------------------------------------
             db ' ',' ',' ',' ','P','r','e','s','s',' ','2',' ','t','o',' ','L','e','a','v','e','.',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
             db ' ',' ',' ',' ','P','r','e','s','s',' ','3',' ','t','o',' ','u','s','e',' ','R','u','s','t','y',' ','K','n','i','f','e','.',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
             db ' ',' ',' ',' ','Y','o','u',' ','h','a','v','e',' ','k','i','l','l','e','d',' ','O','l','d',' ','M','a','n','.',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
-             
+            db ' ',' ',' ',' ','P','r','e','s','s',' ','1',' ','t','o',' ','l','o','o','t',' ','b','o','d','y','.',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
+            db ' ',' ',' ',' ','P','r','e','s','s',' ','2',' ','t','o',' ','l','e','a','v','e','.',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
+            db ' ',' ',' ',' ','Y','o','u',' ','h','a','v','e',' ','l','o','o','t','e','d',' ','t','h','e',' ','b','o','d','y','!',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
+            db ' ',' ',' ',' ','M','a','y','b','e',' ','I',' ','w','i','l','l',' ','c','o','m','e',' ','b','a','c','k',' ','l','a','t','e','r','.',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
 
-    ;msgid,getknife?,killedguy?,... 
+
+    ;msgid,getknife?,looting?,... 
     event db 2,1,0,0,0,0,0,0,0
           db 3,0,0,0,0,0,0,0,0
-          db 7,0,-1,0,0,0,0,0,0
+          db 7,0,0,0,0,0,0,0,0
+          db 10,2,0,0,0,0,0,0,0
+          db 11,0,0,0,0,0,0,0,0
+          
 
            ;msgid,flags for new inv
 
     choices db 4,0,5,1,106,102,99,99
+            db 8,3,9,4,99,99,99,99
              
     .code
 
@@ -251,7 +260,10 @@ main proc
 		mov cci.bVisible, FALSE
 		invoke SetConsoleCursorInfo, chand, addr cci
 		; hide the cursor
-		
+	
+    invoke GetTickCount
+    invoke nseed, eax
+    	
     call drawbg
     call drawmap
     
@@ -277,6 +289,10 @@ main proc
 		ret
 main endp
 
+beep proc
+    INVOKE  Beep,800,100
+    INVOKE  MessageBeep,-1
+beep endp
 get_input proc
 		getkey
 		
@@ -372,6 +388,9 @@ get_input proc
 			.if al == 'o'
 				mov eax,0
                         call interact
+                  .elseif al == '@'
+                        mov eax,1
+                        call interact
 			.else
 				loc 0,0
 				print " "
@@ -442,7 +461,6 @@ get_input proc
 		
 		ret
 get_input endp
-
 
 
 interact proc
@@ -634,7 +652,6 @@ interact proc
      
 interact endp
 
-
 execevent proc
     mov esi,offset event
     .while eax>0
@@ -650,16 +667,76 @@ execevent proc
     add esi,1
     mov eax,[esi]
     and eax,000000ffh
-    .if eax==1
+    .if eax==1 ;getknife?
       mov inv.knife,1
       call drawinv
+    .elseif eax==2 ;loot?
+        mov ecx, pos.x
+        mov edx, pos.y
+	.if last_direction.x == -1
+        	dec ecx
+        .elseif last_direction.x == 1
+		inc ecx
+	.endif
+	.if last_direction.y == -1
+		dec edx
+	.elseif last_direction.y == 1
+		inc edx
+	.endif
+      call lootmapitem
+      call drawmap
+      call drawplayer
+
+
     .endif
     ret
 execevent endp
 
+lootmapitem proc
+		push(ecx)
+		push(edx)
+		
+		mov eax, curr_map
+		mov esi, 1536
+		mul esi
+    add eax, offset maps
+		mov esi, eax
+		
+		pop(edx)
+		pop(ecx)
+		
+		;mov esi,offset maps
+    add esi,ecx
+    .while edx>0
+        add esi,64
+        sub edx,1
+    .endw
+    mov BYTE PTR [esi], ' '
+
+    
+    invoke nrandom, 16
+    add inv.money, eax
+    call drawinv
+    call beep
+    ret
+
+
+lootmapitem endp
 
 killmapitem proc         ;x pos in ecx (0,63), y pos in edx(0,23)
-    mov esi,offset map
+		push(ecx)
+		push(edx)
+		
+		mov eax, curr_map
+		mov esi, 1536
+		mul esi
+    add eax, offset maps
+		mov esi, eax
+		
+		pop(edx)
+		pop(ecx)
+		
+		;mov esi,offset maps
     add esi,ecx
     .while edx>0
         add esi,64
@@ -667,6 +744,7 @@ killmapitem proc         ;x pos in ecx (0,63), y pos in edx(0,23)
     .endw
     mov BYTE PTR [esi], '@'
     ret
+
 killmapitem endp
 
 
@@ -696,9 +774,13 @@ getmapitem endp
 drawinv proc
     loc 0,29
     print "Inventory: "
-    
+    print "Money ["
+    mov eax,inv.money
+    print str$(eax)
+
+    print "]"
     .if inv.knife==1
-        print "Rusty Knife"
+        print ", Rusty Knife"
     .endif
     ret
 drawinv endp
@@ -844,27 +926,7 @@ writemsg proc ;chatline in [esi], msgtowrite in [edx]
     ret
 writemsg endp
 
-beep proc uses ax bx cx
-    IN AL, 61h  ;Save state
-    PUSH AX  
-    MOV BX, 6818; 1193180/175
-    MOV AL, 6Bh  ; Select Channel 2, write LSB/BSB mode 3
-    OUT 43h, AL 
-    MOV AX, BX 
-    OUT 24h, AL  ; Send the LSB
-    MOV AL, AH  
-    OUT 42h, AL  ; Send the MSB
-    IN AL, 61h   ; Get the 8255 Port Contence
-    OR AL, 3h      
-    OUT 61h, AL  ;End able speaker and use clock channel 2 for input
-    MOV CX, 03h ; High order wait value
-    MOV DX 0D04h; Low order wait value
-    MOV AX, 86h;Wait service
-    INT 15h        
-    POP AX;restore Speaker state
-    OUT 61h, AL
-    RET
-beep endp
+
 
 drawplayer proc
 
