@@ -17,6 +17,9 @@ comment * -----------------------------------------------------
 			x DWORD ?
 			y DWORD ?
 		POINT ENDS
+            INVENTORY STRUCT
+			knife db 0
+		INVENTORY ENDS
 
     .data
 		
@@ -25,6 +28,8 @@ comment * -----------------------------------------------------
 				
         old_pos POINT <1, 1>;
         pos POINT <1, 1>;
+        inv INVENTORY<0>;
+
 				
         map db '#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'
 	      db '#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'
@@ -104,7 +109,10 @@ comment * -----------------------------------------------------
 
     chatmsg db ' ',' ',' ',' ','Y','o','u',' ','c','a','n','t',' ','m','o','v','e',' ','t','h','e','r','e','!',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
             db ' ',' ',' ',' ','W','e','l','c','o','m','e',' ','t','o',' ','t','h','e',' ','g','a','m','e','!',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
+            db ' ',' ',' ',' ','T','h','e',' ','o','l','d',' ','m','a','n',' ','g','i','v','e','s',' ','y','o','u',' ','a',' ','r','u','s','t','y',' ','k','n','i','f','e','.',' ',' ',' ',' '
+           ;msgid,flags for new inv 
 
+    event db 2,1,0,0,0,0,0,0,0, 
 
                      
     .code
@@ -130,14 +138,16 @@ main proc
 		
     call drawbg
     call drawmap
-
+    
     call drawchat
     mov eax,1
     call addmsg
-   
+    mov eax,0
+    call execevent
+    
     call drawchat
-		
-   .while 1
+    call drawinv
+    .while 1
         call drawplayer
         call get_input
     .endw
@@ -217,6 +227,27 @@ get_input proc
 		ret
 get_input endp
 
+execevent proc
+    mov esi,offset event
+    .while eax>0
+        add esi,9
+        sub eax,1
+    .endw
+    push esi
+    mov eax,[esi]
+    and eax,000000ffh
+    call addmsg
+    call drawchat
+    pop esi
+    add esi,1
+    mov eax,[esi]
+    and eax,000000ffh
+    .if eax==1
+      mov inv.knife,1
+    .endif
+execevent endp
+
+
 getmapitem proc         ;x pos in ecx (0,63), y pos in edx(0,23)
     mov esi,offset map
     add esi,ecx
@@ -227,6 +258,16 @@ getmapitem proc         ;x pos in ecx (0,63), y pos in edx(0,23)
     mov eax,[esi]
     ret
 getmapitem endp
+
+drawinv proc
+    loc 0,29
+    print "Inventory: "
+    
+    .if inv.knife==1
+        print "Rusty Knife"
+    .endif
+    ret
+drawinv endp
 
 drawbg proc
     loc 0,0
