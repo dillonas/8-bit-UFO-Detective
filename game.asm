@@ -1,7 +1,8 @@
-; ¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+; ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     include \masm32\include\masm32rt.inc
+		include \masm32\macros\macros.asm
  
-; ¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+; ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 comment * -----------------------------------------------------
                      Build this console app with
@@ -10,7 +11,21 @@ comment * -----------------------------------------------------
 
     .data?
 
+		
+
+		POINT STRUCT
+			x DWORD ?
+			y DWORD ?
+		POINT ENDS
+
     .data
+		
+        cci CONSOLE_CURSOR_INFO <>
+        chand dd ?
+				
+        old_pos POINT <1, 1>;
+        pos POINT <1, 1>;
+				
         map db '#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'
 	      db '#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'
             db '#',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
@@ -93,17 +108,23 @@ comment * -----------------------------------------------------
 
 start:
    
-; ¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+; ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
     call main
-    getkey
     exit
 
-; ¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+; ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 main proc
 
-
-
+		;LOCAL pos :POINT
+		
+		invoke GetStdHandle, STD_OUTPUT_HANDLE
+		mov chand, eax
+		invoke GetConsoleCursorInfo, chand, addr cci
+		mov cci.bVisible, FALSE
+		invoke SetConsoleCursorInfo, chand, addr cci
+		; hide the cursor
+		
     call drawbg
     call drawmap
 
@@ -120,15 +141,70 @@ main proc
     mov eax,0
     call addmsg
     call drawchat
+		
+		.while 1
+		  call drawplayer
+		  call get_input
+		.endw
+		
     ;mov ecx,1
     ;mov edx,2
     ;call getmapitem
     ;printf("%c",eax)
-
-
-    ret
-
+		ret
 main endp
+
+get_input proc
+		getkey
+		
+		mov edx, pos.x
+		mov old_pos.x, edx
+		mov edx, pos.y
+		mov old_pos.y, edx
+		
+		.if al == 75 && pos.x > 0
+			; left
+			mov ecx, pos.x
+			mov edx, pos.y
+			;
+			dec ecx
+			call getmapitem
+			.if al == ' '
+				dec pos.x
+			.endif
+		.elseif al == 72 && pos.y > 0
+			; up
+			mov ecx, pos.x
+			mov edx, pos.y
+			;
+			dec edx
+			call getmapitem
+			.if al == ' '
+				dec pos.y
+			.endif
+		.elseif al == 77 && pos.x <= 62
+			; right
+			mov ecx, pos.x
+			mov edx, pos.y
+			;
+			inc ecx
+			call getmapitem
+			.if al == ' '
+				inc pos.x
+			.endif
+		.elseif al == 80 && pos.y <= 22
+			; down
+			mov ecx, pos.x
+			mov edx, pos.y
+			;
+			inc edx
+			call getmapitem
+			.if al == ' '
+				inc pos.y
+			.endif
+		.endif
+		ret
+get_input endp
 
 getmapitem proc         ;x pos in ecx (0,63), y pos in edx(0,23)
     mov esi,offset map
@@ -199,7 +275,7 @@ drawchat proc
      .endif
      push edx
  
-     call drawchatline  
+     call drawchatline
   
      
 
@@ -288,8 +364,32 @@ addmsg proc ;msgid in eax
     ret
 addmsg endp
 
+drawplayer proc
+
+		mov edx, 4
+		mov ecx, 3
+
+		add edx, old_pos.y
+		add ecx, old_pos.x
+		
+		loc ecx, edx
+    print " "
+		
+    mov edx, 4
+    mov ecx, 3
+		
+		add edx, pos.y
+		add ecx, pos.x
+		
+		loc ecx, edx
+    print "x"
+		
+		ret
+
+drawplayer endp
+
 drawmap proc
-    mov esi, offset map   
+    mov esi, offset map
     mov edx, 4
     mov ecx, 24
     L1:
@@ -497,6 +597,6 @@ drawmap proc
 drawmap endp
 
 
-; ¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤¤
+; ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
 end start
