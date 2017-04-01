@@ -292,7 +292,9 @@ main endp
 beep proc
     INVOKE  Beep,800,100
     INVOKE  MessageBeep,-1
+    ret
 beep endp
+
 get_input proc
 		getkey
 		
