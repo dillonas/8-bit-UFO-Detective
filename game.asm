@@ -77,30 +77,33 @@ comment * -----------------------------------------------------
 
      cindex db 5
 
-       chat db 44 dup('a')
-            db 44 dup('b')
-            db 44 dup('c')
-            db 44 dup('d')
-            db 44 dup('e')
-            db 44 dup('f')
-            db 44 dup('g')
-            db 44 dup('h')
-            db 44 dup('i')
-            db 44 dup('j')
-            db 44 dup('k')
-            db 44 dup('l')
-            db 44 dup('m')
-            db 44 dup('n')
-            db 44 dup('o')
-            db 44 dup('p')
-            db 44 dup('q')
-            db 44 dup('r')
-            db 44 dup('s')
-            db 44 dup('t')
-            db 44 dup('u')
-            db 44 dup('v')
-            db 44 dup('w')
-            db 44 dup('x')
+       chat db 44 dup(' ')
+            db 44 dup(' ')
+            db 44 dup(' ')
+            db 44 dup(' ')
+            db 44 dup(' ')
+            db 44 dup(' ')
+            db 44 dup(' ')
+            db 44 dup(' ')
+            db 44 dup(' ')
+            db 44 dup(' ')
+            db 44 dup(' ')
+            db 44 dup(' ')
+            db 44 dup(' ')
+            db 44 dup(' ')
+            db 44 dup(' ')
+            db 44 dup(' ')
+            db 44 dup(' ')
+            db 44 dup(' ')
+            db 44 dup(' ')
+            db 44 dup(' ')
+            db 44 dup(' ')
+            db 44 dup(' ')
+            db 44 dup(' ')
+            db 44 dup(' ')
+
+    chatmsg db ' ',' ',' ',' ','Y','o','u',' ','c','a','n','t',' ','m','o','v','e',' ','t','h','e','r','e','!',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
+            db ' ',' ',' ',' ','W','e','l','c','o','m','e',' ','t','o',' ','t','h','e',' ','g','a','m','e','!',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
 
 
                      
@@ -129,23 +132,15 @@ main proc
     call drawmap
 
     call drawchat
-
-    mov eax,0
+    mov eax,1
     call addmsg
-    mov eax,0
-    call addmsg
-    mov eax,0
-    call addmsg
-    mov eax,0
-    call addmsg
-    mov eax,0
-    call addmsg
+   
     call drawchat
 		
-		.while 1
-		  call drawplayer
-		  call get_input
-		.endw
+   .while 1
+        call drawplayer
+        call get_input
+    .endw
 		
     ;mov ecx,1
     ;mov edx,2
@@ -171,6 +166,10 @@ get_input proc
 			call getmapitem
 			.if al == ' '
 				dec pos.x
+                  .elseif
+                    mov eax,0
+                    call addmsg
+                    call drawchat
 			.endif
 		.elseif al == 72 && pos.y > 0
 			; up
@@ -181,6 +180,10 @@ get_input proc
 			call getmapitem
 			.if al == ' '
 				dec pos.y
+                  .elseif
+                    mov eax,0
+                    call addmsg
+                    call drawchat
 			.endif
 		.elseif al == 77 && pos.x <= 62
 			; right
@@ -191,6 +194,10 @@ get_input proc
 			call getmapitem
 			.if al == ' '
 				inc pos.x
+                  .elseif
+                    mov eax,0
+                    call addmsg
+                    call drawchat
 			.endif
 		.elseif al == 80 && pos.y <= 22
 			; down
@@ -201,6 +208,10 @@ get_input proc
 			call getmapitem
 			.if al == ' '
 				inc pos.y
+                  .elseif
+                    mov eax,0
+                    call addmsg
+                    call drawchat
 			.endif
 		.endif
 		ret
@@ -269,9 +280,8 @@ drawchat proc
      add eax,4
      loc 72,eax
      pop edx
-     .if edx==24
-         mov esi, offset chat
-         sub edx,24
+     .if edx>23
+         mov edx,0
      .endif
      push edx
  
@@ -317,52 +327,47 @@ addmsg proc ;msgid in eax
     mov edx,[esi]
     and edx,000000ffh
     inc edx
-    mov [esi],edx
+    .if edx>23
+        mov edx,0
+        mov [esi],edx
+        mov edx,24
+    .else
+        mov [esi],edx
+    .endif
     dec edx
+   
     mov esi,offset chat
     .while edx>0
         add esi,44
         sub edx,1
     .endw
     pop eax
-    .if eax==0
-        mov eax,54534554h
-        mov [esi],eax
-        add esi,4
-        mov eax,20202020h
-        mov [esi],ecx
-        add esi,4
-        mov eax,20202020h
-        mov [esi],ecx
-        add esi,4
-        mov eax,20202020h
-        mov [esi],ecx
-        add esi,4
-        mov eax,20202020h
-        mov [esi],ecx
-        add esi,4
-        mov eax,20202020h
-        mov [esi],ecx
-        add esi,4
-        mov eax,20202020h
-        mov [esi],ecx
-        add esi,4
-        mov eax,20202020h
-        mov [esi],ecx
-        add esi,4
-        mov eax,20202020h
-        mov [esi],ecx
-        add esi,4
-        mov eax,20202020h
-        mov [esi],ecx
-        add esi,4
-        mov eax,20202020h
-        mov [esi],ecx
+    mov edx, offset chatmsg
+    .while eax>0
+        add edx,44
+        sub eax,1
+    .endw
+    
+    call writemsg
 
-    .endif
+  
 
     ret
 addmsg endp
+
+writemsg proc ;chatline in [esi], msgtowrite in [edx]
+    mov ecx,11
+    WM1: push ecx
+    mov eax,[edx]
+    mov [esi],eax
+    add edx,4
+    add esi,4
+
+    pop ecx
+    sub ecx,1
+    jnz WM1
+    ret
+writemsg endp
 
 drawplayer proc
 
