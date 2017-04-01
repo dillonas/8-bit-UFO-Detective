@@ -110,11 +110,16 @@ comment * -----------------------------------------------------
     chatmsg db ' ',' ',' ',' ','Y','o','u',' ','c','a','n','t',' ','m','o','v','e',' ','t','h','e','r','e','!',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
             db ' ',' ',' ',' ','W','e','l','c','o','m','e',' ','t','o',' ','t','h','e',' ','g','a','m','e','!',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
             db ' ',' ',' ',' ','T','h','e',' ','o','l','d',' ','m','a','n',' ','g','i','v','e','s',' ','y','o','u',' ','a',' ','r','u','s','t','y',' ','k','n','i','f','e','.',' ',' ',' ',' '
-           ;msgid,flags for new inv 
+            db ' ',' ',' ',' ','O','l','d',' ','M','a','n',':',' ','N','o','t',' ','w','a','n','t',' ','t','o',' ','t','a','l','k',' ','t','o',' ','m','e','?',' ',' ',' ',' ',' ',' ',' ',' '
+            db ' ',' ',' ',' ','P','r','e','s','s',' ','1',' ','t','o',' ','T','a','l','k','.',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
+            db ' ',' ',' ',' ','P','r','e','s','s',' ','2',' ','t','o',' ','L','e','a','v','e','.',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
+    ;msgid,flags for new inv 
+    event db 2,1,0,0,0,0,0,0,0
+          db 3,0,0,0,0,0,0,0,0
 
-    event db 2,1,0,0,0,0,0,0,0, 
 
-                     
+    choices db 4,0,5,1,99,99,99,99
+             
     .code
 
 start:
@@ -143,7 +148,7 @@ main proc
     mov eax,1
     call addmsg
     mov eax,0
-    call execevent
+    call interact
     
     call drawchat
     call drawinv
@@ -227,6 +232,96 @@ get_input proc
 		ret
 get_input endp
 
+
+
+interact proc
+    mov esi,offset choices
+    .while eax>0
+        add esi,8
+        sub eax,1
+    .endw
+    mov ecx,4
+    I1: push ecx
+    mov eax,[esi]
+    and eax,000000ffh
+    push esi
+    .if eax<99
+        call addmsg
+        call drawchat
+    .endif
+    pop esi
+    add esi,2
+    pop ecx
+    sub ecx,1
+    jnz I1
+    
+    sub esi,7
+    I2: push esi
+    getkey
+    .if eax==49
+      pop esi
+      mov ebx,[esi]
+      push esi
+      and ebx,000000ffh
+      .if ebx < 99
+        mov eax, ebx
+        call execevent
+        pop esi
+        ret
+      .endif
+    .elseif eax==50
+      pop esi
+      add esi,2
+      push esi
+      mov ebx,[esi]
+      and ebx,000000ffh
+      .if ebx < 99
+        mov eax, ebx
+        call execevent
+        pop esi
+        ret
+      .endif
+      pop esi
+      sub esi,2
+      push esi
+    .elseif eax==51
+      pop esi
+      add esi,4
+      push esi
+      mov ebx,[esi]
+      and ebx,000000ffh
+      .if ebx < 99
+        mov eax, ebx
+        call execevent
+        pop esi
+        ret
+      .endif
+      pop esi
+      sub esi,4
+      push esi
+    .elseif eax==52
+      pop esi
+      add esi,6
+      push esi
+      mov ebx,[esi]
+      and ebx,000000ffh
+      .if ebx < 99     
+        mov eax, ebx
+        call execevent
+        pop esi
+        ret
+      .endif
+      pop esi
+      sub esi,6
+      push esi
+    .endif
+    pop esi
+    jmp I2    
+    
+     
+interact endp
+
+
 execevent proc
     mov esi,offset event
     .while eax>0
@@ -245,6 +340,7 @@ execevent proc
     .if eax==1
       mov inv.knife,1
     .endif
+    ret
 execevent endp
 
 
