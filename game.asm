@@ -840,7 +840,7 @@ drawinv endp
 drawbg proc
     loc 0,0
     cls
-    print "                                                     MAIN TITLE                                                         "
+    print "                                                     8-bit UFO Detective                                                "
     print "                                                                                                                        "
     print "                               GAME                                                      MESSAGES                       "
     print "  ------------------------------------------------------------------  ------------------------------------------------  "
