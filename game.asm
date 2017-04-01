@@ -29,7 +29,7 @@ comment * -----------------------------------------------------
         old_pos POINT <1, 1>;
         pos POINT <1, 1>;
         inv INVENTORY<0>;
-
+        last_direction POINT <1, 1>;
 				
         map db '#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'
 	      db '#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#','#'
@@ -52,7 +52,7 @@ comment * -----------------------------------------------------
        	db '#',' ',' ',' ','#',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
        	db ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','#'
        	db '#',' ',' ',' ','#',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
-       	db ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','#'
+       	db ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','$','$',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','#'
        	db '#',' ',' ',' ','#',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
        	db ' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ','#'
        	db '#',' ',' ',' ','#',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
@@ -110,9 +110,9 @@ comment * -----------------------------------------------------
     chatmsg db ' ',' ',' ',' ','Y','o','u',' ','c','a','n','t',' ','m','o','v','e',' ','t','h','e','r','e','!',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
             db ' ',' ',' ',' ','W','e','l','c','o','m','e',' ','t','o',' ','t','h','e',' ','g','a','m','e','!',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' ',' '
             db ' ',' ',' ',' ','T','h','e',' ','o','l','d',' ','m','a','n',' ','g','i','v','e','s',' ','y','o','u',' ','a',' ','r','u','s','t','y',' ','k','n','i','f','e','.',' ',' ',' ',' '
-           ;msgid,flags for new inv 
+           ;msgid,flags for new inv
 
-    event db 2,1,0,0,0,0,0,0,0, 
+    event db 2,1,0,0,0,0,0,0,0,
 
                      
     .code
@@ -171,7 +171,7 @@ get_input proc
 			; left
 			mov ecx, pos.x
 			mov edx, pos.y
-			;
+			
 			dec ecx
 			call getmapitem
 			.if al == ' '
@@ -181,11 +181,14 @@ get_input proc
                     call addmsg
                     call drawchat
 			.endif
+			
+			mov last_direction.x, -1
+			mov last_direction.y, 0
 		.elseif al == 72 && pos.y > 0
 			; up
 			mov ecx, pos.x
 			mov edx, pos.y
-			;
+			
 			dec edx
 			call getmapitem
 			.if al == ' '
@@ -195,11 +198,14 @@ get_input proc
                     call addmsg
                     call drawchat
 			.endif
+			
+			mov last_direction.x, 0
+			mov last_direction.y, -1
 		.elseif al == 77 && pos.x <= 62
 			; right
 			mov ecx, pos.x
 			mov edx, pos.y
-			;
+			
 			inc ecx
 			call getmapitem
 			.if al == ' '
@@ -209,11 +215,14 @@ get_input proc
                     call addmsg
                     call drawchat
 			.endif
+			
+			mov last_direction.x, 1
+			mov last_direction.y, 0
 		.elseif al == 80 && pos.y <= 22
 			; down
 			mov ecx, pos.x
 			mov edx, pos.y
-			;
+			
 			inc edx
 			call getmapitem
 			.if al == ' '
@@ -222,6 +231,32 @@ get_input proc
                     mov eax,0
                     call addmsg
                     call drawchat
+			.endif
+			
+			mov last_direction.x, 0
+			mov last_direction.y, 1
+		.elseif al == 32
+			mov ecx, pos.x
+			mov edx, pos.y
+			.if last_direction.x == -1
+				dec ecx
+			.elseif last_direction.x == 1
+				inc ecx
+			.endif
+			.if last_direction.y == -1
+				dec edx
+			.elseif last_direction.y == 1
+				inc edx
+			.endif
+			
+			call getmapitem
+			
+			.if al == '$'
+				loc 0,0
+				print "$"
+			.else
+				loc 0,0
+				print " "
 			.endif
 		.endif
 		ret
